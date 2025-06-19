@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>موقع الجمالية - منصة للجمال الطبيعي</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary-color: #4a6572;
+            --secondary-color: #f9aa33;
+            --text-color: #ffffff;
+            --bg-overlay: rgba(0, 0, 0, 0.3);
+            --transition: all 0.4s ease;
+        }
+
+        body {
+            height: 100vh;
+            overflow: hidden;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            transition: background-image 1.5s ease-in-out;
+            position: relative;
+            color: var(--text-color);
+        }
+
+        /* شاشة الترحيب */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 1s ease;
+        }
+
+        .logo {
+            font-size: 5rem;
+            margin-bottom: 1rem;
+            color: #fff;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.7);
+            animation: pulse 2s infinite;
+        }
+
+        .welcome-text {
+            font-size: 3rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .loading-bar {
+            width: 300px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .loading-progress {
+            position: absolute;
+            height: 100%;
+            width: 0%;
+            background: #f9aa33;
+            animation: loading 2s forwards;
+        }
+
+        @keyframes loading {
+            to { width: 100%; }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* الصفحة الرئيسية */
+        #main-content {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            transition: opacity 1s ease;
+            position: relative;
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.3));
+            z-index: -1;
+        }
+
+        /* الساعة والتقويم */
+        .datetime-container {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 20px 30px;
+            border-radius: 20px;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 280px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .datetime-container:hover {
+            transform: translateX(-50%) scale(1.03);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .calendar {
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .date {
+            font-size: 3.2rem;
+            font-weight: 600;
+            transition: transform 0.3s ease;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .date:hover {
+            transform: scale(1.05);
+        }
+
+        .year {
+            font-size: 1.9rem;
+            opacity: 0.9;
+            margin-top: -5px;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+        }
+
+        .time {
+            font-size: 4.8rem;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-align: center;
+            margin-top: 8px;
+            font-variant-numeric: tabular-nums;
+            text-shadow: 0 3px 12px rgba(0, 0, 0, 0.5);
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .time:hover {
+            transform: scale(1.05);
+        }
+
+        .time-format {
+            font-size: 1.3rem;
+            margin-top: 8px;
+            text-align: center;
+            opacity: 0.9;
+            text-shadow: 0 1px 6px rgba(0, 0, 0, 0.4);
+        }
+
+        /* إعدادات */
+        .settings-btn {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 20;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            transition: var(--transition);
+        }
+
+        .settings-btn:hover {
+            background: rgba(0, 0, 0, 0.6);
+            transform: rotate(30deg) scale(1.1);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        }
+
+        .settings-btn i {
+            font-size: 1.7rem;
+            color: white;
+        }
+
+        /* قائمة الإعدادات */
+        .settings-panel {
+            position: absolute;
+            top: 100px;
+            right: 30px;
+            width: 350px;
+            background: rgba(0, 0, 0, 0.85);
+            border-radius: 25px;
+            padding: 25px;
+            z-index: 30;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            transform: translateX(150%);
+            transition: transform 0.5s ease, opacity 0.5s ease;
+            max-height: 80vh;
+            overflow-y: auto;
+            opacity: 0;
+        }
+
+        .settings-panel.active {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .settings-panel h2 {
+            font-size: 2rem;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            text-align: center;
+            color: var(--secondary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .settings-section {
+            margin-bottom: 28px;
+        }
+
+        .settings-section h3 {
+            font-size: 1.4rem;
+            margin-bottom: 18px;
+            color: var(--secondary-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* معرض الصور */
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .gallery-item {
+            aspect-ratio: 1/1;
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: pointer;
+            opacity: 0.8;
+            transition: var(--transition);
+            border: 2px solid transparent;
+            position: relative;
+            background: #333;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .gallery-item:hover, .gallery-item.active {
+            opacity: 1;
+            transform: scale(1.08);
+            border-color: var(--secondary-color);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+            z-index: 2;
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease, opacity 0.3s ease;
+        }
+
+        .gallery-item:hover img {
+            transform: scale(1.1);
+        }
+
+        .gallery-item .placeholder {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #444;
+            color: #aaa;
+            font-size: 0.8rem;
+            text-align: center;
+            padding: 10px;
+        }
+
+        /* عناصر التحكم */
+        .control-group {
+            margin-bottom: 18px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1.15rem;
+        }
+
+        .slider {
+            width: 100%;
+            height: 10px;
+            -webkit-appearance: none;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            outline: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--secondary-color);
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(249, 170, 51, 0.5);
+            transition: transform 0.2s ease;
+        }
+
+        .slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .color-picker {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .color-option {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: var(--transition);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .color-option:hover, .color-option.active {
+            transform: scale(1.25);
+            border-color: white;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
+        }
+
+        /* تحميل الصور */
+        .image-loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            flex-direction: column;
+            color: white;
+            font-size: 1.6rem;
+            backdrop-filter: blur(15px);
+        }
+
+        .image-loading .spinner {
+            width: 70px;
+            height: 70px;
+            border: 6px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 6px solid var(--secondary-color);
+            animation: spin 1s linear infinite;
+            margin-bottom: 25px;
+            box-shadow: 0 0 20px rgba(249, 170, 51, 0.4);
+        }
+
+        .progress-bar {
+            width: 300px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--secondary-color);
+            transition: width 0.5s ease;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* تصميم متجاوب */
+        @media (max-width: 768px) {
+            .time {
+                font-size: 3.8rem;
+            }
+            
+            .date {
+                font-size: 2.7rem;
+            }
+            
+            .settings-panel {
+                width: 90%;
+                right: 5%;
+                left: 5%;
+                top: 80px;
+            }
+            
+            .gallery {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .datetime-container {
+                width: 90%;
+                padding: 15px 20px;
+            }
+            
+            .settings-btn {
+                top: 20px;
+                right: 20px;
+                width: 50px;
+                height: 50px;
+            }
+            
+            .welcome-text {
+                font-size: 2.2rem;
+            }
+            
+            .logo {
+                font-size: 4rem;
+            }
+        }
+
+        @media (max-height: 600px) {
+            .datetime-container {
+                bottom: 20px;
+                padding: 15px 20px;
+            }
+            
+            .time {
+                font-size: 3.2rem;
+            }
+            
+            .date {
+                font-size: 2.3rem;
+            }
+            
+            .settings-panel {
+                top: 70px;
+            }
+        }
+        
+        /* رسالة تحذير */
+        .warning-message {
+            background-color: #ff9800;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 5px;
+            position: absolute;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            animation: fadeInOut 3s forwards;
+            display: none;
+        }
+        
+        @keyframes fadeInOut {
+            0% { opacity: 0; top: 80px; }
+            10% { opacity: 1; top: 100px; }
+            90% { opacity: 1; top: 100px; }
+            100% { opacity: 0; top: 80px; }
+        }
+    </style>
+</head>
+<body>
+    <div id="splash-screen">
+        <div class="logo">
+            <i class="fas fa-mountain-sun"></i>
+        </div>
+        <h1 class="welcome-text">مرحبًا بكم في عالم الجمال الطبيعي</h1>
+        <div class="loading-bar">
+            <div class="loading-progress"></div>
+        </div>
+    </div>
+
+    <div class="image-loading" id="image-loading" style="display: none;">
+        <div class="spinner"></div>
+        <p id="loading-text">جاري تحميل الخلفية الأولى...</p>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+        </div>
+    </div>
+    
+    <div class="warning-message" id="warning-message"></div>
+
+    <div id="main-content">
+        <div class="overlay"></div>
+        
+        <div class="settings-btn">
+            <i class="fas fa-cog"></i>
+        </div>
+        
+        <div class="settings-panel">
+            <h2><i class="fas fa-sliders-h"></i> إعدادات الموقع</h2>
+            
+            <div class="settings-section">
+                <h3><i class="fas fa-images"></i> معرض الصور المفضلة</h3>
+                <div class="gallery" id="background-gallery">
+                    </div>
+            </div>
+            
+            <div class="settings-section">
+                <h3><i class="fas fa-clock"></i> وقت تغيير الخلفية</h3>
+                <div class="control-group">
+                    <label for="bg-interval">الفاصل الزمني (دقائق): <span id="interval-value">5</span></label>
+                    <input type="range" min="1" max="10" value="5" class="slider" id="bg-interval">
+                </div>
+            </div>
+            
+            <div class="settings-section">
+                <h3><i class="fas fa-palette"></i> تعديل الألوان</h3>
+                <div class="control-group">
+                    <label>لون الساعة والتقويم</label>
+                    <div class="color-picker" id="color-picker">
+                        <div class="color-option active" style="background-color: #ffffff;" data-color="#ffffff"></div>
+                        <div class="color-option" style="background-color: #f9aa33;" data-color="#f9aa33"></div>
+                        <div class="color-option" style="background-color: #a7ffeb;" data-color="#a7ffeb"></div>
+                        <div class="color-option" style="background-color: #ffb4a2;" data-color="#ffb4a2"></div>
+                        <div class="color-option" style="background-color: #cdb4db;" data-color="#cdb4db"></div>
+                        <div class="color-option" style="background-color: #ffafcc;" data-color="#ffafcc"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="datetime-container">
+            <div class="calendar">
+                <div class="date" id="current-date">1/1</div>
+                <div class="year" id="current-year">2024</div>
+            </div>
+            <div class="time" id="current-time">00:00:00</div>
+            <div class="time-format" id="time-format">24 ساعة</div>
+        </div>
+    </div>
+
+    <script>
+        // قائمة الصور الخلفية. الصور الموجودة تعمل بشكل جيد.
+        const backgroundImages = [
+            'https://images.pexels.com/photos/572897/pexels-photo-572897.jpeg?auto=compress&cs=tinysrgb&w=1920&dpr=1',
+            'https://images.pexels.com/photos/2387873/pexels-photo-2387873.jpeg?auto=compress&cs=tinysrgb&w=1920&dpr=1',
+            'https://images.pexels.com/photos/417074/pexels-photo-417074.jpeg?auto=compress&cs=tinysrgb&w=1920&dpr=1',
+            'https://images.pexels.com/photos/36717/amazing-animal-beautiful-beautifull.jpg?auto=compress&cs=tinysrgb&w=1920&dpr=1',
+            'https://images.pexels.com/photos/15286/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=1920&dpr=1',
+            'https://images.pexels.com/photos/1367192/pexels-photo-1367192.jpeg?auto=compress&cs=tinysrgb&w=1920&dpr=1',
+            'https://images.pexels.com/photos/462024/pexels-photo-462024.jpeg?auto=compress&cs=tinysrgb&w=1920&dpr=1',
+            'https://images.pexels.com/photos/417054/pexels-photo-417054.jpeg?auto=compress&cs=tinysrgb&w=1920&dpr=1',
+            'https://images.pexels.com/photos/2387877/pexels-photo-2387877.jpeg?auto=compress&cs=tinysrgb&w=1920&dpr=1',
+            'https://images.pexels.com/photos/1174732/pexels-photo-1174732.jpeg?auto=compress&cs=tinysrgb&w=1920&dpr=1',
+            'https://images.pexels.com/photos/325185/pexels-photo-325185.jpeg?auto=compress&cs=tinysrgb&w=1920&dpr=1',
+            'https://images.pexels.com/photos/807598/pexels-photo-807598.jpeg?auto=compress&cs=tinysrgb&w=1920&dpr=1',
+            'https://images.pexels.com/photos/176851/pexels-photo-176851.jpeg?auto=compress&cs=tinysrgb&w=1920&dpr=1',
+            'https://images.pexels.com/photos/3408744/pexels-photo-3408744.jpeg?auto=compress&cs=tinysrgb&w=1920&dpr=1',
+            'https://images.pexels.com/photos/1525041/pexels-photo-1525041.jpeg?auto=compress&cs=tinysrgb&w=1920&dpr=1',
+            'https://images.pexels.com/photos/326055/pexels-photo-326055.jpeg?auto=compress&cs=tinysrgb&w=1920&dpr=1',
+            'https://images.pexels.com/photos/5409751/pexels-photo-5409751.jpeg?auto=compress&cs=tinysrgb&w=1920&dpr=1',
+            'https://images.pexels.com/photos/531756/pexels-photo-531756.jpeg?auto=compress&cs=tinysrgb&w=1920&dpr=1',
+            'https://images.pexels.com/photos/417344/pexels-photo-417344.jpeg?auto=compress&cs=tinysrgb&w=1920&dpr=1',
+            'https://images.pexels.com/photos/1933239/pexels-photo-1933239.jpeg?auto=compress&cs=tinysrgb&w=1920&dpr=1',
+            'https://images.pexels.com/photos/1257860/pexels-photo-1257860.jpeg?auto=compress&cs=tinysrgb&w=1920&dpr=1',
+            'https://images.pexels.com/photos/3265460/pexels-photo-3265460.jpeg?auto=compress&cs=tinysrgb&w=1920&dpr=1',
+            'https://images.pexels.com/photos/2113566/pexels-photo-2113566.jpeg?auto=compress&cs=tinysrgb&w=1920&dpr=1',
+            'https://images.pexels.com/photos/2166559/pexels-photo-2166559.jpeg?auto=compress&cs=tinysrgb&w=1920&dpr=1',
+            'https://images.pexels.com/photos/167699/pexels-photo-167699.jpeg?auto=compress&cs=tinysrgb&w=1920&dpr=1',
+            
+            // --- هنا تضع روابط صورك الخاصة ---
+            // يمكنك رفع صورك على موقع مثل postimages.org ثم نسخ الرابط المباشر ولصقه هنا
+            'https://i.postimg.cc/c1XngNjH/06636933615fdb4bd94125048037e944.jpg',
+            'https://i.postimg.cc/g2QcLG3v/73096959cacf58aa964680bfe631bb64.jpg',
+            'https://i.postimg.cc/d35kzgp4/19757494b5ed39fcd47c544926dc869a.jpg',
+            'https://i.postimg.cc/1R7D7qSP/5480e928444bb3ef8bab7c539dd5c82c.jpg',
+            'https://i.postimg.cc/XvXgYk42/7005f311ba76b4ada33262427dcd3d72.jpg'
+            // --- نهاية قسم الصور الخاصة ---
+        ];
+        
+        // عناصر DOM
+        const splashScreen = document.getElementById('splash-screen');
+        const mainContent = document.getElementById('main-content');
+        const currentTime = document.getElementById('current-time');
+        const currentDate = document.getElementById('current-date');
+        const currentYear = document.getElementById('current-year');
+        const timeFormat = document.getElementById('time-format');
+        const settingsBtn = document.querySelector('.settings-btn');
+        const settingsPanel = document.querySelector('.settings-panel');
+        const backgroundGallery = document.getElementById('background-gallery');
+        const bgIntervalSlider = document.getElementById('bg-interval');
+        const intervalValue = document.getElementById('interval-value');
+        const colorPicker = document.getElementById('color-picker');
+        const datetimeContainer = document.querySelector('.datetime-container');
+        const imageLoading = document.getElementById('image-loading');
+        const warningMessage = document.getElementById('warning-message');
+        const progressFill = document.getElementById('progress-fill');
+        const loadingText = document.getElementById('loading-text');
+        
+        // المتغيرات
+        let bgInterval = 5; // دقائق
+        let bgChangeTimer;
+        let currentBgIndex = 0;
+        let is24HourFormat = true;
+        let loadedImages = 0;
+        let totalImages = backgroundImages.length; 
+        let errorImages = [];
+        let firstImageLoaded = false;
+        let imageCache = []; 
+        
+        // تهيئة الموقع
+        function init() {
+            setTimeout(() => {
+                splashScreen.style.opacity = '0';
+                setTimeout(() => {
+                    splashScreen.style.display = 'none';
+                    preloadImages();
+                }, 1000);
+            }, 2000);
+            
+            updateDateTime();
+            setInterval(updateDateTime, 1000);
+            setupEventListeners();
+        }
+        
+        // تحميل الصور مسبقاً
+        function preloadImages() {
+            imageLoading.style.display = 'flex';
+            totalImages = backgroundImages.length; 
+            
+            if (backgroundImages.length === 0) {
+                imageLoading.style.display = 'none';
+                mainContent.style.opacity = '1';
+                document.body.style.backgroundColor = '#333';
+                showWarning('لا توجد صور في القائمة لعرضها.');
+                initGallery();
+                return;
+            }
+
+            const firstImageSrc = backgroundImages[0];
+            const isPlaceholder = firstImageSrc.includes('placehold.co');
+            
+            const firstImage = new Image();
+            firstImage.onload = () => {
+                document.body.style.backgroundImage = `url('${firstImageSrc}')`;
+                loadedImages++;
+                firstImageLoaded = true;
+                imageCache[0] = firstImage;
+                updateProgress();
+                imageLoading.style.display = 'none';
+                mainContent.style.opacity = '1';
+                startBgChangeTimer();
+                initGallery();
+            };
+            firstImage.onerror = () => {
+                console.error('فشل تحميل الصورة الأولى: ', firstImageSrc);
+                errorImages.push(firstImageSrc);
+                loadedImages++; 
+                updateProgress();
+                imageLoading.style.display = 'none';
+                mainContent.style.opacity = '1';
+                document.body.style.backgroundColor = '#333'; 
+                startBgChangeTimer(); 
+                initGallery();
+            };
+            
+            // لتحسين سرعة التحميل الأولي، نستخدم نسخة مضغوطة أولاً ثم النسخة الكاملة
+            if (!isPlaceholder) {
+                firstImage.src = firstImageSrc.split('?')[0] + '?auto=format&fit=crop&q=30&blur=20';
+                setTimeout(() => {
+                    firstImage.src = firstImageSrc;
+                }, 100);
+            } else {
+                 firstImage.src = firstImageSrc;
+            }
+
+            // تحميل بقية العناصر
+            for (let i = 1; i < backgroundImages.length; i++) {
+                const itemSrc = backgroundImages[i];
+                const imgElement = new Image();
+                
+                imgElement.onload = () => {
+                    if (!itemSrc.includes('placehold.co')) {
+                         // تحميل النسخة الكاملة للصورة في الخلفية
+                        const fullImg = new Image();
+                        fullImg.src = itemSrc;
+                        imageCache[i] = fullImg;
+                    } else {
+                        imageCache[i] = imgElement;
+                    }
+                    loadedImages++;
+                    updateProgress();
+                    if (firstImageLoaded) {
+                        updateGalleryItem(i);
+                    }
+                };
+                imgElement.onerror = () => {
+                    console.error('فشل تحميل الصورة: ', itemSrc);
+                    errorImages.push(itemSrc);
+                    loadedImages++;
+                    updateProgress();
+                     if (firstImageLoaded) {
+                        updateGalleryItem(i, true); 
+                    }
+                };
+                // تحميل نسخة مصغرة لمعرض الصور
+                imgElement.src = itemSrc.includes('placehold.co') ? itemSrc : itemSrc.split('?')[0] + '?auto=format&fit=crop&q=50&w=300';
+            }
+        }
+        
+        // تحديث شريط التقدم
+        function updateProgress() {
+            if (totalImages === 0) { 
+                 progressFill.style.width = '0%';
+                 loadingText.textContent = 'لا توجد عناصر للتحميل.';
+                 return;
+            }
+            const progress = Math.floor((loadedImages / totalImages) * 100);
+            progressFill.style.width = `${progress}%`;
+            loadingText.textContent = `جاري تحميل الصور (${loadedImages}/${totalImages})`;
+            if (loadedImages >= totalImages && imageLoading.style.display !== 'none' && firstImageLoaded) {
+                 setTimeout(() => { imageLoading.style.display = 'none'; }, 500);
+            }
+        }
+        
+        // تحديث عنصر المعرض
+        function updateGalleryItem(index, hasError = false) {
+            const galleryItem = document.querySelector(`.gallery-item[data-index="${index}"]`);
+            if (galleryItem) {
+                const placeholder = galleryItem.querySelector('.placeholder');
+                const img = galleryItem.querySelector('img');
+                
+                if (placeholder) {
+                    if (hasError) {
+                        placeholder.textContent = 'خطأ';
+                        placeholder.style.backgroundColor = 'rgba(255,0,0,0.3)';
+                        placeholder.style.display = 'flex';
+                        if(img) img.style.display = 'none'; 
+                    } else {
+                        placeholder.style.display = 'none';
+                    }
+                }
+
+                if (img && !hasError) {
+                    img.style.opacity = '1';
+                    img.style.display = 'block';
+                    // المصدر تم تعيينه بالفعل في preloadImages
+                }
+            }
+        }
+        
+        // إظهار رسالة تحذير
+        function showWarning(message) {
+            warningMessage.textContent = message;
+            warningMessage.style.display = 'block';
+            
+            setTimeout(() => {
+                warningMessage.style.display = 'none';
+            }, 3000);
+        }
+        
+        // تحديث الوقت والتاريخ
+        function updateDateTime() {
+            const now = new Date();
+            let hours = now.getHours();
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const seconds = now.getSeconds().toString().padStart(2, '0');
+            
+            if (!is24HourFormat) {
+                const ampm = hours >= 12 ? 'م' : 'ص';
+                hours = hours % 12 || 12;
+                currentTime.textContent = `${hours}:${minutes}:${seconds}`;
+                timeFormat.textContent = ampm;
+            } else {
+                currentTime.textContent = `${hours.toString().padStart(2, '0')}:${minutes}:${seconds}`;
+                timeFormat.textContent = '24 ساعة';
+            }
+            
+            const day = now.getDate();
+            const month = now.getMonth() + 1;
+            const year = now.getFullYear();
+            currentDate.textContent = `${day}/${month}`;
+            currentYear.textContent = year;
+        }
+        
+        // تغيير الخلفية
+        function changeBackground() {
+            const validImageSources = backgroundImages.filter((src, idx) => 
+                !errorImages.includes(src) && 
+                imageCache[idx] &&
+                !src.includes('placehold.co')
+            );
+
+            if (validImageSources.length === 0) {
+                console.warn("لا توجد صور صالحة لتغيير الخلفية.");
+                return;
+            }
+            
+            let newIndexInFilteredArray;
+            let originalIndex;
+            
+            do {
+                newIndexInFilteredArray = Math.floor(Math.random() * validImageSources.length);
+                originalIndex = backgroundImages.indexOf(validImageSources[newIndexInFilteredArray]);
+            } while (originalIndex === currentBgIndex && validImageSources.length > 1);
+            
+            currentBgIndex = originalIndex;
+            
+            if (imageCache[currentBgIndex]) {
+                document.body.style.backgroundImage = `url('${imageCache[currentBgIndex].src}')`;
+            } else {
+                // كود احتياطي في حال عدم وجود الصورة في الكاش
+                document.body.style.backgroundImage = `url('${backgroundImages[currentBgIndex]}')`; 
+            }
+            updateActiveThumbnail();
+        }
+        
+        // بدء مؤقت تغيير الخلفية
+        function startBgChangeTimer() {
+            clearInterval(bgChangeTimer);
+            bgChangeTimer = setInterval(changeBackground, bgInterval * 60 * 1000);
+        }
+        
+        // تهيئة معرض الصور
+        function initGallery() {
+            backgroundGallery.innerHTML = '';
+            if (backgroundImages.length === 0) {
+                backgroundGallery.innerHTML = '<p style="color: #ccc; text-align: center; grid-column: 1 / -1;">لا توجد صور في المعرض.</p>';
+                return;
+            }
+            
+            backgroundImages.forEach((itemSrc, index) => {
+                const galleryItem = document.createElement('div');
+                galleryItem.className = 'gallery-item';
+                if (index === currentBgIndex) galleryItem.classList.add('active');
+                galleryItem.dataset.index = index;
+                
+                const placeholder = document.createElement('div');
+                placeholder.className = 'placeholder';
+                
+                const imgElement = document.createElement('img');
+                imgElement.alt = `صورة ${index + 1}`;
+                imgElement.loading = "lazy"; 
+                
+                if(errorImages.includes(itemSrc)){
+                    placeholder.textContent = 'خطأ';
+                    placeholder.style.display = 'flex';
+                    imgElement.style.display = 'none';
+                } else {
+                    imgElement.src = itemSrc.includes('placehold.co') ? itemSrc : itemSrc.split('?')[0] + '?auto=format&fit=crop&q=50&w=300';
+                    placeholder.style.display = 'none';
+                }
+
+                galleryItem.appendChild(placeholder);
+                galleryItem.appendChild(imgElement);
+                backgroundGallery.appendChild(galleryItem);
+            });
+        }
+        
+        // تحديث الصورة النشطة في المعرض
+        function updateActiveThumbnail() {
+            document.querySelectorAll('.gallery-item').forEach(item => {
+                item.classList.remove('active');
+                if (parseInt(item.dataset.index) === currentBgIndex) {
+                    item.classList.add('active');
+                }
+            });
+        }
+        
+        // تعيين مستمعي الأحداث
+        function setupEventListeners() {
+            settingsBtn.addEventListener('click', (e) => {
+                e.stopPropagation(); 
+                settingsPanel.classList.toggle('active');
+            });
+            
+            bgIntervalSlider.addEventListener('input', () => {
+                bgInterval = parseInt(bgIntervalSlider.value);
+                intervalValue.textContent = bgInterval;
+                startBgChangeTimer();
+            });
+            
+            colorPicker.addEventListener('click', (e) => {
+                if (e.target.classList.contains('color-option')) {
+                    document.querySelectorAll('.color-option').forEach(opt => {
+                        opt.classList.remove('active');
+                    });
+                    e.target.classList.add('active');
+                    datetimeContainer.style.color = e.target.dataset.color;
+                }
+            });
+            
+            backgroundGallery.addEventListener('click', (e) => {
+                const galleryItem = e.target.closest('.gallery-item');
+                if (galleryItem) {
+                    const newIndex = parseInt(galleryItem.dataset.index);
+                    const selectedSrc = backgroundImages[newIndex];
+
+                    const isPlaceholder = selectedSrc.includes('placehold.co');
+                    
+                    if (isPlaceholder) {
+                        showWarning('الرجاء استبدال الرابط النائب برابط صورة حقيقي أولاً.');
+                        return;
+                    }
+
+                    if (imageCache[newIndex] && !errorImages.includes(selectedSrc)) {
+                        currentBgIndex = newIndex;
+                        document.body.style.backgroundImage = `url('${imageCache[newIndex].src}')`;
+                        updateActiveThumbnail();
+                        clearInterval(bgChangeTimer); 
+                        startBgChangeTimer(); 
+                    } else if (errorImages.includes(selectedSrc)) {
+                         showWarning('لا يمكن تحميل هذه الصورة، قد يكون الرابط غير صالح.');
+                    }
+                }
+            });
+            
+            currentTime.addEventListener('click', () => {
+                is24HourFormat = !is24HourFormat;
+                updateDateTime();
+                showWarning(`تم تغيير التنسيق إلى ${is24HourFormat ? '24 ساعة' : '12 ساعة'}`);
+            });
+            
+            document.addEventListener('click', (e) => {
+                if (settingsPanel.classList.contains('active') && !settingsPanel.contains(e.target) && !settingsBtn.contains(e.target)) {
+                    settingsPanel.classList.remove('active');
+                }
+            });
+        }
+        
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
