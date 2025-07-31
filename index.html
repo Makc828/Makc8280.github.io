@@ -601,12 +601,6 @@
             align-items: center;
         }
 
-        .availability-text {
-            font-size: 0.875rem;
-            font-weight: 500;
-            margin-right: 0.5rem;
-        }
-
         .availability-icon {
             width: 1.25rem;
             height: 1.25rem;
@@ -3259,6 +3253,39 @@
         // Checkout Form Submission
         checkoutForm.onsubmit = async (e) => {
             e.preventDefault(); 
+            
+            const selectedGovernorate = governorateSelect.value;
+            const phoneNumber = phoneNumberInput.value.trim();
+
+            // 1. Validate Governorate (already there, but re-emphasizing)
+            if (!selectedGovernorate || !IraqiGovernorates.includes(selectedGovernorate)) {
+                alertMessage('الرجاء اختيار محافظة صحيحة داخل العراق لإتمام الطلب.', 'error');
+                return; // Stop form submission
+            }
+
+            // 2. Validate Phone Number format (starts with 07)
+            if (!phoneNumber.startsWith('07')) {
+                alertMessage('الرجاء إدخال رقم هاتف عراقي صحيح يبدأ بـ "07".', 'error');
+                return; // Stop form submission
+            }
+
+            // 3. Geolocation Check (User Confirmation)
+            // This is a manual confirmation step. For a truly robust solution,
+            // you'd need a backend service to verify IP geolocation.
+            const userConfirmedLocation = await new Promise(resolve => {
+                showCustomConfirmModal(
+                    "تأكيد الموقع الجغرافي",
+                    "يرجى التأكيد أنك تقوم بالطلب من داخل العراق. متجرنا يقدم خدماته داخل العراق فقط.",
+                    () => resolve(true),
+                    () => resolve(false)
+                );
+            });
+
+            if (!userConfirmedLocation) {
+                alertMessage('تم إلغاء الطلب. يجب أن تكون داخل العراق لإتمام عملية الشراء.', 'error');
+                return; // Stop form submission if user cancels or denies location
+            }
+
 
             const formData = new FormData(checkoutForm);
             const orderDetails = {};
