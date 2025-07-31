@@ -607,25 +607,25 @@
             color: #34d399;
         }
 
-        .color-options-section {
+        .color-options-section, .variation-options-section {
             padding-bottom: 0; /* Removed padding to the bottom of the content block */
         }
 
-        .color-options-section h3 {
+        .color-options-section h3, .variation-options-section h3 {
             font-size: 1.125rem;
             font-weight: 600;
             color: #2d3748;
             margin-bottom: 0.5rem;
         }
 
-        .color-swatch-container {
+        .color-swatch-container, .variation-option-container {
             display: flex;
             gap: 0.75rem;
             flex-wrap: wrap;
         }
 
-        /* Style for color buttons */
-        .color-button {
+        /* Style for color and variation buttons */
+        .color-button, .variation-button {
             background-color: #e2e8f0; /* Light gray background */
             color: #2d3748; /* Dark text */
             padding: 0.5rem 1rem;
@@ -635,22 +635,42 @@
             transition: all 0.2s ease-in-out;
             font-size: 0.9rem;
             font-weight: 500;
+            display: flex; /* For image + text layout */
+            flex-direction: column; /* For image + text layout */
+            align-items: center; /* For image + text layout */
+            justify-content: center; /* For image + text layout */
+            text-align: center; /* For image + text layout */
+            min-width: 80px; /* Ensure some minimum width */
+            max-width: 120px; /* Limit max width */
         }
-        .color-button.selected {
+        .color-button.selected, .variation-button.selected {
             background-color: #3b82f6; /* Blue-500 for selected */
             color: white;
             border-color: #3b82f6;
             box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5); /* Outer glow */
         }
-        .color-button.unavailable-color {
+        .color-button.unavailable-color, .variation-button.unavailable-variation {
             opacity: 0.6;
             cursor: not-allowed;
             text-decoration: line-through; /* Strikethrough for unavailable */
             background-color: #f0f0f0;
             color: #a0aec0;
         }
-        .color-button:hover:not(.unavailable-color) {
+        .color-button:hover:not(.unavailable-color), .variation-button:hover:not(.unavailable-variation) {
             background-color: #cbd5e1; /* Darker gray on hover */
+        }
+        .variation-button img {
+            max-width: 60px; /* Smaller image size for variations */
+            height: 60px;
+            object-fit: contain;
+            border-radius: 4px;
+            margin-bottom: 0.4rem;
+        }
+        .variation-button span.variation-text-label {
+            font-size: 0.8rem; /* Smaller font for text label below image */
+            color: inherit; /* Inherit color from button */
+            margin-top: 0.2rem; /* Small margin above text label */
+            display: block; /* Ensure it takes its own line */
         }
 
 
@@ -1457,12 +1477,19 @@
                     </div>
 
                     <div class="color-options-section">
-                        <!-- Removed static h3 for "الألوان المتوفرة:" to prevent duplication -->
-                        <h3 class="text-lg font-semibold text-gray-800 mb-2">الألوان المتوفرة:</h3>
+                        <h3 class="text-lg font-semibold text-gray-800 mb-2" id="color-options-title">الألوان المتوفرة:</h3>
                         <div id="color-options" class="color-swatch-container">
                             <!-- Color options will be dynamically added here by JavaScript as buttons -->
-                            <!-- Example: <button class="color-button" data-color="blue" data-image="...">أزرق</button> -->
                             <p class="text-gray-500 text-sm w-full text-center hidden" id="no-colors-message-details">لا توجد خيارات ألوان لهذا المنتج.</p>
+                        </div>
+                    </div>
+
+                    <!-- New: Variations (Shapes/Sizes) Section -->
+                    <div class="variation-options-section mt-4">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-2" id="variation-options-title">الخيارات المتوفرة:</h3>
+                        <div id="variation-options" class="variation-option-container">
+                            <!-- Variation options will be dynamically added here by JavaScript as buttons -->
+                            <p class="text-gray-500 text-sm w-full text-center hidden" id="no-variations-message-details">لا توجد خيارات إضافية لهذا المنتج.</p>
                         </div>
                     </div>
                 </div>
@@ -1527,7 +1554,7 @@
         <section id="chat-page" class="page-content">
             <div id="chat-messages-container" class="chat-messages-container">
                 <!-- Chat messages will appear here -->
-                <div class="layla-message message">مرحباً! كيف يمكنني مساعدتك اليوم؟</div>
+                <!-- Initial message added by JS -->
             </div>
             <div class="chat-input-area">
                 <input type="text" id="chat-input" placeholder="اكتب سؤالك هنا...">
@@ -1700,11 +1727,13 @@
         let currentFilter = 'all'; // 'all', 'offers', 'best-selling', 'most-rated' or a product type
         let cartItems = []; 
         let selectedProductColor = null; // To store the selected color for the current product
+        let selectedProductVariation = null; // New: To store the selected variation for the current product
         let isNavigating = false; // Flag to prevent rapid navigation issues
 
         // Context for Layla's conversation
         let lastProductDiscussed = null; // Stores the ID of the last product Layla discussed
         let lastIntentType = null; // Stores the type of the last intent matched
+        let chatHistoryArray = []; // Array to store chat messages
 
         // UI Elements
         const appContainer = document.getElementById('app-container');
@@ -1745,6 +1774,13 @@
         const productAvailability = document.getElementById('product-availability'); // Product availability text
         const colorOptionsContainer = document.getElementById('color-options'); // Color options container
         const noColorsMessageDetails = document.getElementById('no-colors-message-details'); // No colors message on details page
+        const colorOptionsTitle = document.getElementById('color-options-title'); // Title for color options
+        
+        // New: Variation (Shapes/Sizes) Elements
+        const variationOptionsContainer = document.getElementById('variation-options'); // Variation options container
+        const noVariationsMessageDetails = document.getElementById('no-variations-message-details'); // No variations message on details page
+        const variationOptionsTitle = document.getElementById('variation-options-title'); // Title for variation options
+
         const addToCartButton = document.getElementById('add-to-cart-btn'); // Add to cart button
         const suggestedProductsCarousel = document.getElementById('suggested-products-carousel'); // Suggested products carousel
         const productDetailsRatingSummary = document.getElementById('product-details-rating-summary'); // New: Rating summary on details page
@@ -2025,14 +2061,14 @@
                         } catch (error) {
                             console.error("Error signing in anonymously:", error);
                             productsDisplay.innerHTML = '<p class="text-red-500 col-span-full">خطأ في الاتصال بالمتجر. يرجى المحاولة لاحقاً.</p>';
-                            addChatMessage("ليلى", "عذراً، لا أستطيع الاتصال بخدماتي حالياً. يرجى المحاولة مرة أخرى لاحقاً.", 'layla-message');
+                            addChatMessage("ليلى", "عذراً، لا أستطيع الاتصال بخدماتي حالياً. يرجى المحاولة مرة أخرى لاحقاً.", 'layla-message', false); // Do not save initial error message
                         }
                     }
                 });
             } catch (error) {
                 console.error("Error initializing Firebase:", error);
                 productsDisplay.innerHTML = '<p class="text-red-500 col-span-full">خطأ فادح في تهيئة Firebase. يرجى التحقق من الإعدادات.</p>';
-                addChatMessage("ليلى", "عذراً، حدث خطأ فادح في تهيئة خدماتي. يرجى إبلاغ إدارة المتجر.", 'layla-message');
+                addChatMessage("ليلى", "عذراً، حدث خطأ فادح في تهيئة خدماتي. يرجى إبلاغ إدارة المتجر.", 'layla-message', false); // Do not save initial error message
             }
         }
 
@@ -2080,7 +2116,7 @@
                 console.log("Intents updated in real-time for Layla.");
             }, (error) => {
                 console.error("Error fetching intents for Layla:", error);
-                addChatMessage("ليلى", "عذراً، لا أستطيع الوصول إلى قاعدة معلوماتي حالياً.", 'layla-message');
+                addChatMessage("ليلى", "عذراً، لا أستطيع الوصول إلى قاعدة معلوماتي حالياً.", 'layla-message', false); // Do not save initial error message
             });
 
             // Listen for changes in 'store_notes' collection (using ADMIN_USER_ID)
@@ -2432,12 +2468,7 @@
                 // Display color options as buttons only if it's not a book and colors are available
                 if (!isBook(product) && product.colors && product.colors.length > 0) {
                     noColorsMessageDetails.classList.add('hidden'); // Hide the "no colors" message
-                    // The h3 for "الألوان المتوفرة:" is now static in HTML, so no need to create it here.
-                    // Instead, we ensure the static h3 is visible.
-                    const staticColorTitle = colorOptionsContainer.previousElementSibling; // Assuming h3 is sibling
-                    if (staticColorTitle && staticColorTitle.tagName === 'H3') {
-                        staticColorTitle.classList.remove('hidden'); // Ensure it's visible
-                    }
+                    colorOptionsTitle.classList.remove('hidden'); // Ensure title is visible
 
                     product.colors.forEach((color) => {
                         const colorButton = document.createElement('button');
@@ -2466,16 +2497,78 @@
                 } else {
                     colorOptionsContainer.innerHTML = ''; // Clear if no colors or it's a book
                     noColorsMessageDetails.classList.remove('hidden'); // Show the "no colors" message
-                    // Append the message if it's not already there
-                    if (!colorOptionsContainer.contains(noColorsMessageDetails)) {
-                        colorOptionsContainer.appendChild(noColorsMessageDetails);
-                    }
-                    // Hide the static h3 if no colors are available
-                    const staticColorTitle = colorOptionsContainer.previousElementSibling;
-                    if (staticColorTitle && staticColorTitle.tagName === 'H3') {
-                        staticColorTitle.classList.add('hidden');
-                    }
+                    colorOptionsContainer.appendChild(noColorsMessageDetails); // Ensure message is appended
+                    colorOptionsTitle.classList.add('hidden'); // Hide title if no colors
                 }
+
+                // New: Clear previous variation options and reset selected variation
+                variationOptionsContainer.innerHTML = '';
+                selectedProductVariation = null; // Ensure no variation is pre-selected
+
+                // Display variation options as buttons only if not a book and variations are available
+                if (!isBook(product) && product.variations && product.variations.length > 0) {
+                    noVariationsMessageDetails.classList.add('hidden'); // Hide the "no variations" message
+                    variationOptionsTitle.classList.remove('hidden'); // Ensure title is visible
+
+                    product.variations.forEach((variation) => {
+                        const variationButton = document.createElement('button');
+                        variationButton.classList.add('variation-button');
+                        variationButton.dataset.variationTitle = variation.title; // Store the main title
+                        variationButton.dataset.variationType = variation.type;
+                        variationButton.dataset.variationValue = variation.value;
+                        variationButton.dataset.variationImageTitle = variation.imageTitle || ''; // Store image title
+
+                        if (variation.type === 'text') {
+                            variationButton.textContent = variation.value;
+                        } else if (variation.type === 'image' && variation.value) {
+                            const img = document.createElement('img');
+                            img.src = variation.value;
+                            img.alt = variation.imageTitle || variation.title;
+                            img.onerror = function() { handleImageError(this); }; // Handle image error for variation images
+                            variationButton.appendChild(img);
+                            if (variation.imageTitle) {
+                                const span = document.createElement('span');
+                                span.classList.add('variation-text-label');
+                                span.textContent = variation.imageTitle;
+                                variationButton.appendChild(span);
+                            }
+                        }
+                        
+                        if (!variation.available) {
+                            variationButton.classList.add('unavailable-variation'); // Add a class for unavailable variations
+                            variationButton.disabled = true; // Disable unavailable variation buttons
+                        }
+                        variationOptionsContainer.appendChild(variationButton);
+
+                        // Attach click listener for variation buttons
+                        variationButton.onclick = (e) => {
+                            if (e.currentTarget.disabled) return; // Do nothing if button is disabled
+                            // Remove 'selected' from all variation buttons
+                            document.querySelectorAll('.variation-button').forEach(btn => btn.classList.remove('selected'));
+                            // Add 'selected' to the clicked button
+                            e.currentTarget.classList.add('selected');
+                            selectedProductVariation = {
+                                title: e.currentTarget.dataset.variationTitle,
+                                type: e.currentTarget.dataset.variationType,
+                                value: e.currentTarget.dataset.variationValue,
+                                imageTitle: e.currentTarget.dataset.variationImageTitle
+                            };
+                            // Update main product image if the selected variation has an image
+                            if (selectedProductVariation.type === 'image' && selectedProductVariation.value) {
+                                productImage.src = selectedProductVariation.value;
+                            } else {
+                                // Revert to original product image if a text variation is selected or no variation image
+                                productImage.src = product.imageUrl || `https://placehold.co/320x320/E0E7FF/3B82F6?text=Product+Image`;
+                            }
+                        };
+                    });
+                } else {
+                    variationOptionsContainer.innerHTML = ''; // Clear if no variations or it's a book
+                    noVariationsMessageDetails.classList.remove('hidden'); // Show the "no variations" message
+                    variationOptionsContainer.appendChild(noVariationsMessageDetails); // Ensure message is appended
+                    variationOptionsTitle.classList.add('hidden'); // Hide title if no variations
+                }
+
 
                 const isProductAvailable = product.availability === 'متوفر';
                 addToCartButton.onclick = isProductAvailable ? () => addProductToCart(product) : null;
@@ -2511,12 +2604,27 @@
                     return;
                 }
                 itemToAdd.selectedColor = selectedProductColor;
+            } else {
+                itemToAdd.selectedColor = null; // Ensure it's null if not applicable
             }
 
-            // Check if item (with or without selected color) already exists in cart
+            // New: If it's not a book and has variations, and a variation is selected
+            if (!isBook(product) && product.variations && product.variations.length > 0) {
+                if (!selectedProductVariation) {
+                    alertMessage('الرجاء اختيار خيار للمنتج (مثل الحجم أو الشكل).', 'info');
+                    return;
+                }
+                itemToAdd.selectedVariation = selectedProductVariation;
+            } else {
+                itemToAdd.selectedVariation = null; // Ensure it's null if not applicable
+            }
+
+
+            // Check if item (with or without selected color/variation) already exists in cart
             const existingItem = cartItems.find(item => 
                 item.id === itemToAdd.id && 
-                item.selectedColor === itemToAdd.selectedColor
+                item.selectedColor === itemToAdd.selectedColor &&
+                JSON.stringify(item.selectedVariation) === JSON.stringify(itemToAdd.selectedVariation) // Deep compare variations
             );
 
             if (existingItem) {
@@ -2532,12 +2640,15 @@
         /**
          * Removes a product from the cart.
          * @param {string} productId - The ID of the product to remove.
+         * @param {string|null} selectedColor - The selected color of the product.
+         * @param {Object|null} selectedVariation - The selected variation of the product.
          */
-        function removeProductFromCart(productId) {
-            // Note: This function currently removes by productId only.
-            // For carts with color variants, you might need to pass both productId and selectedColor
-            // to accurately remove a specific item. For simplicity, keeping it by ID for now.
-            cartItems = cartItems.filter(item => item.id !== productId);
+        function removeProductFromCart(productId, selectedColor, selectedVariation) {
+            cartItems = cartItems.filter(item => 
+                !(item.id === productId && 
+                  item.selectedColor === selectedColor && 
+                  JSON.stringify(item.selectedVariation) === JSON.stringify(selectedVariation))
+            );
             updateCartDisplay();
             alertMessage('تم حذف المنتج من السلة.', 'info');
         }
@@ -2545,17 +2656,20 @@
         /**
          * Updates quantity of a product in the cart.
          * @param {string} productId - The ID of the product.
+         * @param {string|null} selectedColor - The selected color of the product.
+         * @param {Object|null} selectedVariation - The selected variation of the product.
          * @param {number} delta - Change in quantity (+1 or -1).
          */
-        function updateCartItemQuantity(productId, delta) {
-            // Note: This function currently updates by productId only.
-            // For carts with color variants, you might need to pass both productId and selectedColor
-            // to accurately update a specific item. For simplicity, keeping it by ID for now.
-            const item = cartItems.find(i => i.id === productId); 
+        function updateCartItemQuantity(productId, selectedColor, selectedVariation, delta) {
+            const item = cartItems.find(i => 
+                i.id === productId && 
+                i.selectedColor === selectedColor && 
+                JSON.stringify(i.selectedVariation) === JSON.stringify(selectedVariation)
+            ); 
             if (item) {
                 item.quantity += delta;
                 if (item.quantity <= 0) {
-                    removeProductFromCart(productId);
+                    removeProductFromCart(productId, selectedColor, selectedVariation);
                 } else {
                     updateCartDisplay();
                 }
@@ -2606,18 +2720,27 @@
                     const itemPrice = typeof item.price === 'string' ? parseInt(item.price.replace(/,/g, '')) : item.price; 
                     productsSubtotal += itemPrice * item.quantity;
 
+                    // Build item details string for cart title
+                    let itemDetails = item.name;
+                    if (item.selectedColor) {
+                        itemDetails += ` (اللون: ${item.selectedColor})`;
+                    }
+                    if (item.selectedVariation) {
+                        itemDetails += ` (${item.selectedVariation.title})`;
+                    }
+
                     const cartItemDiv = document.createElement('div');
                     cartItemDiv.classList.add('cart-item');
                     cartItemDiv.innerHTML = `
-                        <span class="cart-item-title">${item.name} ${item.selectedColor ? `(${item.selectedColor})` : ''}</span>
+                        <span class="cart-item-title">${itemDetails}</span>
                         <img src="${item.imageUrl || `https://placehold.co/60x60/e0e0e0/000?text=${item.name}`}" alt="${item.name}" onerror="handleImageError(this);">
                         <div class="cart-item-controls-wrapper">
                             <div class="quantity-controls">
-                                <button data-id="${item.id}" data-delta="-1" aria-label="تقليل الكمية">-</button>
+                                <button data-id="${item.id}" data-color="${item.selectedColor || ''}" data-variation='${JSON.stringify(item.selectedVariation || {})}' data-delta="-1" aria-label="تقليل الكمية">-</button>
                                 <span>${item.quantity}</span>
-                                <button data-id="${item.id}" data-delta="1" aria-label="زيادة الكمية">+</button>
+                                <button data-id="${item.id}" data-color="${item.selectedColor || ''}" data-variation='${JSON.stringify(item.selectedVariation || {})}' data-delta="1" aria-label="زيادة الكمية">+</button>
                             </div>
-                            <button data-id="${item.id}" class="remove-btn" aria-label="حذف المنتج"><i class="fas fa-trash"></i></button>
+                            <button data-id="${item.id}" data-color="${item.selectedColor || ''}" data-variation='${JSON.stringify(item.selectedVariation || {})}' class="remove-btn" aria-label="حذف المنتج"><i class="fas fa-trash"></i></button>
                         </div>
                         <p class="cart-item-price-quantity">${itemPrice.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} د.ع x ${item.quantity}</p>
                     `;
@@ -2635,13 +2758,20 @@
             totalPriceFormInput.value = finalTotal.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 }); 
 
             document.querySelectorAll('.remove-btn').forEach(button => {
-                button.onclick = (e) => removeProductFromCart(e.target.dataset.id || e.target.closest('button').dataset.id);
+                button.onclick = (e) => {
+                    const productId = e.currentTarget.dataset.id;
+                    const selectedColor = e.currentTarget.dataset.color || null;
+                    const selectedVariation = JSON.parse(e.currentTarget.dataset.variation || '{}');
+                    removeProductFromCart(productId, selectedColor, selectedVariation);
+                };
             });
             document.querySelectorAll('.quantity-controls button').forEach(button => {
                 button.onclick = (e) => {
-                    const productId = e.target.dataset.id || e.target.closest('button').dataset.id;
-                    const delta = parseInt(e.target.dataset.delta);
-                    updateCartItemQuantity(productId, delta);
+                    const productId = e.currentTarget.dataset.id;
+                    const selectedColor = e.currentTarget.dataset.color || null;
+                    const selectedVariation = JSON.parse(e.currentTarget.dataset.variation || '{}');
+                    const delta = parseInt(e.currentTarget.dataset.delta);
+                    updateCartItemQuantity(productId, selectedColor, selectedVariation, delta);
                 };
             });
         }
@@ -2772,12 +2902,24 @@
         }
 
 
-        function addChatMessage(sender, text, type) {
+        /**
+         * Adds a chat message to the display and optionally saves it to session storage.
+         * @param {string} sender - The sender of the message ("أنت" or "ليلى").
+         * @param {string} text - The message content.
+         * @param {string} type - CSS class for styling ("user-message" or "layla-message").
+         * @param {boolean} [saveToHistory=true] - Whether to save the message to chat history.
+         */
+        function addChatMessage(sender, text, type, saveToHistory = true) {
             const messageDiv = document.createElement('div');
             messageDiv.classList.add('message', type);
             messageDiv.textContent = `${sender}: ${text}`; 
             chatMessagesContainer.appendChild(messageDiv);
             chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+
+            if (saveToHistory) {
+                chatHistoryArray.push({ sender, text, type });
+                sessionStorage.setItem('laylaChatHistory', JSON.stringify(chatHistoryArray));
+            }
             return messageDiv; 
         }
 
@@ -2894,7 +3036,8 @@
                 quantity: item.quantity,
                 price: typeof item.price === 'string' ? parseInt(item.price.replace(/,/g, '')) : item.price,
                 name: item.name,
-                selectedColor: item.selectedColor || null
+                selectedColor: item.selectedColor || null,
+                selectedVariation: item.selectedVariation || null // New: Add selected variation
             }));
 
             try {
@@ -2971,8 +3114,19 @@
 
         // --- Page Initialization Functions ---
         function initChatPage() {
-            // Clear existing messages and add initial Layla message
-            chatMessagesContainer.innerHTML = `<div class="layla-message message">مرحباً! كيف يمكنني مساعدتك اليوم؟</div>`;
+            // Load chat history from session storage
+            const savedChatHistory = sessionStorage.getItem('laylaChatHistory');
+            if (savedChatHistory) {
+                chatHistoryArray = JSON.parse(savedChatHistory);
+                chatMessagesContainer.innerHTML = ''; // Clear existing messages
+                chatHistoryArray.forEach(msg => {
+                    addChatMessage(msg.sender, msg.text, msg.type, false); // Don't save again
+                });
+            } else {
+                // If no history, add initial Layla message
+                chatMessagesContainer.innerHTML = ''; // Ensure it's clear
+                addChatMessage("ليلى", "مرحباً! كيف يمكنني مساعدتك اليوم؟", 'layla-message');
+            }
             chatInput.value = ''; // Ensure chat input is clear
             lastProductDiscussed = null; // Reset context
             lastIntentType = null; // Reset context
@@ -3201,6 +3355,8 @@
             navigateTo(productsPage, 'متجر TERAKS', true); 
             lastProductDiscussed = null; // Clear product context when leaving details page
             currentProductForReviews = null; // Clear review context
+            selectedProductColor = null; // Clear selected color
+            selectedProductVariation = null; // Clear selected variation
         };
 
         // Chat Send Button
@@ -3294,9 +3450,17 @@
             });
 
             // Add cart items to order details
-            orderDetails['المنتجات المطلوبة'] = cartItems.map(item => 
-                `${item.name} (${item.type || 'غير محدد'}${item.selectedColor ? `, اللون: ${item.selectedColor}` : ''}) - ${typeof item.price === 'string' ? parseInt(item.price.replace(/,/g, '')) : item.price} د.ع x ${item.quantity}`
-            ).join('\n');
+            orderDetails['المنتجات المطلوبة'] = cartItems.map(item => {
+                let itemString = `${item.name} (${item.type || 'غير محدد'}`;
+                if (item.selectedColor) {
+                    itemString += `, اللون: ${item.selectedColor}`;
+                }
+                if (item.selectedVariation) {
+                    itemString += `, الخيار: ${item.selectedVariation.title}`;
+                }
+                itemString += `) - ${typeof item.price === 'string' ? parseInt(item.price.replace(/,/g, '')) : item.price} د.ع x ${item.quantity}`;
+                return itemString;
+            }).join('\n');
             orderDetails['إجمالي المنتجات'] = productsSubtotalDisplay.textContent;
             orderDetails['تكلفة التوصيل'] = deliveryCostDisplay.textContent;
             orderDetails['الإجمالي الكلي'] = finalTotalDisplay.textContent;
